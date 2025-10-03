@@ -1,0 +1,93 @@
+---
+title: "R Code & Output_RRWM Activity_Genan"
+author: "Genan Hamad"
+date: "2025-10-02"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Project title: RRWM Data Activity CAnD3
+## Owner: Genan Hamad 
+## Date: Oct 2, 2025
+Citation of Data: Statistics Canada. 2019. Census of Population, 2016 [Canada] Public Use Microdata File (PUMF): Individuals File. Statistics Canada [producer and distributor], accessed September 10, 2021. ID: pumf-98M0001-E-2016-individuals.
+The following tasks are included in this script:  
+Create a subset of data from the Education and Income variables
+Recode the Education variable 
+Generate a descriptive statistics table for the new subset of data
+Run a simple linear regression
+```{r}
+# Import and Read CSV data file using base R
+housing_data <- read.csv("housing_data_pumf-98M0001-E-2016-individuals_F1.csv")
+```
+
+
+```{r}
+# Preview data
+head(housing_data)
+```
+## Variable selection
+
+```{r}
+# Create a new dataset with only Wages (income variable) and HDGREE (education variable) columns
+data2 <- housing_data[c("Wages", "HDGREE")]
+
+# View first few rows of data2
+head(data2)
+```
+## recoding the HDGREE (education variable)
+
+```{r}
+# recode the HDGREE (education variable), where as the values (1, 2, 3, 4, 5, 6, 7) 
+# are coded as "low_edu" and the values (8, 9, 10, 11, 12, 13) are coded as "high_edu"
+
+library(dplyr)
+
+data2 <- data2 %>%
+  mutate(HDGREE = case_when(
+    HDGREE %in% 1:7 ~ "low_edu",
+    HDGREE %in% 8:13 ~ "high_edu",
+    TRUE ~ NA_character_  # for unexpected/missing values
+  ))
+
+# show summary of data2
+summary(data2)
+
+# Preview data2
+head(data2)
+```
+
+## Descriptive Statistics Table
+```{r}
+# generate a descriptive statistics table for data2   
+# data2 contains:
+# "Wages": numeric variable and "HDGREE": categorical variable ("low_edu" and "high_edu")
+
+# Install required packages
+install.packages("summarytools", repos = "https://cloud.r-project.org")
+install.packages("officer", repos = "https://cloud.r-project.org")
+
+# Load them
+library(summarytools)
+library(officer)
+
+# Create a discriptive statistics table for data2, using dfSummary() 
+desc_table <- dfSummary(data2)
+dfSummary(data2)
+```
+## Regression Analysis
+
+```{r}
+# perform a simple linear regression using data2, where:
+# Outcome variable: Wages (numeric)
+# Predictor: HDGREE (categorical: "low_edu", "high_edu")
+
+# Use HDGREE as a factor
+data2$HDGREE <- factor(data2$HDGREE, levels = c("low_edu", "high_edu"))
+
+# Run a simple linear regression analysis 
+model <- lm(Wages ~ HDGREE, data = data2)
+
+# View the regression model summary
+summary(model)
